@@ -86,15 +86,11 @@ def solve_turnstile() -> Optional[str]:
                 time.sleep(1) # Allow process to die
 
             logger.info("Launching fresh SeleniumBase UC browser (Linux Stealth Mode)...")
-            # KEY: Always use xvfb=True + headless=False on Linux.
-            # Headless mode is instantly detected by Cloudflare (error 600010).
-            # Xvfb creates a virtual display that looks real to bot detection.
-            # We temporarily hide the real display so the browser runs invisibly.
-            real_display = os.environ.pop('DISPLAY', None)
-            global_sb_context = SB(uc=True, xvfb=True, headless=False, locale_code="en")
+            # Xvfb virtual display is started by start-solver.sh (display :99)
+            # so the browser renders invisibly. We set xvfb=False here because
+            # we manage the virtual display ourselves for maximum reliability.
+            global_sb_context = SB(uc=True, xvfb=False, headless=False, locale_code="en")
             global_sb = global_sb_context.__enter__() # Get the actual SB instance
-            if real_display:
-                os.environ['DISPLAY'] = real_display  # Restore for the rest of the system
             solve_count = 0
             
             logger.info(f"Navigating to {PAGEURL}...")
