@@ -84,8 +84,9 @@ def solve_turnstile() -> Optional[str]:
                 global_sb_context = None
                 time.sleep(1) # Allow process to die
 
-            logger.info("Launching fresh SeleniumBase UC browser (Linux Server Mode)...")
-            global_sb_context = SB(uc=True, xvfb=True, headless=True)
+            logger.info("Launching fresh SeleniumBase UC browser (Linux Mode)...")
+            needs_xvfb = not bool(os.environ.get('DISPLAY'))
+            global_sb_context = SB(uc=True, xvfb=needs_xvfb, headless=True)
             global_sb = global_sb_context.__enter__() # Get the actual SB instance
             solve_count = 0
             
