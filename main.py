@@ -89,8 +89,12 @@ def solve_turnstile() -> Optional[str]:
             # KEY: Always use xvfb=True + headless=False on Linux.
             # Headless mode is instantly detected by Cloudflare (error 600010).
             # Xvfb creates a virtual display that looks real to bot detection.
+            # We temporarily hide the real display so the browser runs invisibly.
+            real_display = os.environ.pop('DISPLAY', None)
             global_sb_context = SB(uc=True, xvfb=True, headless=False, locale_code="en")
             global_sb = global_sb_context.__enter__() # Get the actual SB instance
+            if real_display:
+                os.environ['DISPLAY'] = real_display  # Restore for the rest of the system
             solve_count = 0
             
             logger.info(f"Navigating to {PAGEURL}...")
