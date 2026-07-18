@@ -86,7 +86,7 @@ def solve_turnstile() -> Optional[str]:
 
             logger.info("Launching fresh SeleniumBase UC browser (Linux Mode)...")
             needs_xvfb = not bool(os.environ.get('DISPLAY'))
-            global_sb_context = SB(uc=True, xvfb=needs_xvfb, headless=True)
+            global_sb_context = SB(uc=True, xvfb=needs_xvfb, headless=needs_xvfb)
             global_sb = global_sb_context.__enter__() # Get the actual SB instance
             solve_count = 0
             
