@@ -1,6 +1,7 @@
 """
 Turnstile solver microservice using FastAPI and SeleniumBase UC mode.
-Optimized for LOCAL WINDOWS execution.
+Optimized for Linux execution (desktop & headless servers).
+Uses Xvfb virtual display instead of headless mode to bypass Cloudflare detection.
 """
 
 import os
@@ -84,9 +85,11 @@ def solve_turnstile() -> Optional[str]:
                 global_sb_context = None
                 time.sleep(1) # Allow process to die
 
-            logger.info("Launching fresh SeleniumBase UC browser (Linux Mode)...")
-            needs_xvfb = not bool(os.environ.get('DISPLAY'))
-            global_sb_context = SB(uc=True, xvfb=needs_xvfb, headless=needs_xvfb)
+            logger.info("Launching fresh SeleniumBase UC browser (Linux Stealth Mode)...")
+            # KEY: Always use xvfb=True + headless=False on Linux.
+            # Headless mode is instantly detected by Cloudflare (error 600010).
+            # Xvfb creates a virtual display that looks real to bot detection.
+            global_sb_context = SB(uc=True, xvfb=True, headless=False, locale_code="en")
             global_sb = global_sb_context.__enter__() # Get the actual SB instance
             solve_count = 0
             
