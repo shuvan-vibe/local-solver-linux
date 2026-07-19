@@ -66,16 +66,18 @@ INJECT_JS = f"""
 global_sb_context = None
 global_sb = None
 solve_count = 0
+consecutive_failures = 0
 
 def solve_turnstile() -> Optional[str]:
     """Navigate to target page, inject Turnstile, auto-solve, return token."""
     from seleniumbase import SB
-    global global_sb_context, global_sb, solve_count
+    global global_sb_context, global_sb, solve_count, consecutive_failures
 
     try:
-        # Restart browser if it's the first time, or if we've used it 20 times
-        if global_sb is None or solve_count >= 20:
-            logger.info(f"Browser state (count={solve_count}). Needs fresh browser.")
+        # Restart browser if it's the first time, or if we've used it 100 times, or failed 3 times
+        if global_sb is None or solve_count >= 100 or consecutive_failures >= 3:
+            logger.info(f"Browser state (count={solve_count}, failures={consecutive_failures}). Needs fresh browser.")
+            consecutive_failures = 0
             if global_sb_context is not None:
                 try:
                     global_sb_context.__exit__(None, None, None)
@@ -110,6 +112,7 @@ def solve_turnstile() -> Optional[str]:
             sb.execute_script(INJECT_JS)
         except Exception as e:
             logger.error(f"Failed to inject widget: {e}")
+            consecutive_failures += 1
             return None
 
         # Wait for the Turnstile API script to load (it loads async)
@@ -147,6 +150,7 @@ def solve_turnstile() -> Optional[str]:
                 token = sb.execute_script("window.__turnstileToken || null")
                 if token and len(str(token)) > 10:
                     logger.info(f"SUCCESS! Token obtained in {(i + 1) * 0.5:.1f}s")
+                    consecutive_failures = 0
                     return token
 
                 error = sb.execute_script("window.__turnstileError || null")
@@ -173,14 +177,7 @@ def solve_turnstile() -> Optional[str]:
     except Exception as e:
         logger.error(f"Error during solve: {e}")
         logger.error(traceback.format_exc())
-        # Force teardown so the next request gets a clean browser
-        if global_sb_context is not None:
-            try:
-                global_sb_context.__exit__(None, None, None)
-            except Exception:
-                pass
-            global_sb = None
-            global_sb_context = None
+        consecutive_failures += 1
         return None
 
 @app.on_event("shutdown")
