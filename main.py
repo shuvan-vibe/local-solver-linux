@@ -74,8 +74,8 @@ def solve_turnstile() -> Optional[str]:
     global global_sb_context, global_sb, solve_count, consecutive_failures
 
     try:
-        # Restart browser if it's the first time, or if we've used it 100 times, or failed 3 times
-        if global_sb is None or solve_count >= 100 or consecutive_failures >= 3:
+        # Restart browser if it's the first time, or if we've used it 250 times, or failed 3 times
+        if global_sb is None or solve_count >= 250 or consecutive_failures >= 3:
             logger.info(f"Browser state (count={solve_count}, failures={consecutive_failures}). Needs fresh browser.")
             consecutive_failures = 0
             if global_sb_context is not None:
